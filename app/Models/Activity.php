@@ -9,4 +9,7 @@ class Activity extends Model
 {
     /** @use HasFactory<\Database\Factories\ActivityFactory> */
     use HasFactory;
+    public function destination(){
+        return $this->belongsTo(Destination::class);
+    }
 }
