@@ -1,5 +1,6 @@
 <?php
 
+use Faker\Extension\BloodExtension;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -11,10 +12,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('cateogries', function (Blueprint $table) {
+        Schema::create('destination_iterinaire',function(Blueprint $table){
             $table->id();
+            $table->foreignId('destination_id')->constrained('destinations')->cascadeOnDelete();
+            $table->foreignId('itinéraire_id')->constrained('iterinaries')->cascadeOnDelete();
             $table->timestamps();
-        });
+            });
     }
 
     /**
@@ -22,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('cateogries');
+        Schema::dropIfExists('destination_iterinaire');
     }
 };

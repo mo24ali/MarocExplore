@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Cateogry;
+use App\Models\Activity;
 use Illuminate\Http\Request;
 
-class CateogryController extends Controller
+class ActivityController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -34,7 +34,7 @@ class CateogryController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Cateogry $cateogry)
+    public function show(Activity $activity)
     {
         //
     }
@@ -42,7 +42,7 @@ class CateogryController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Cateogry $cateogry)
+    public function edit(Activity $activity)
     {
         //
     }
@@ -50,7 +50,7 @@ class CateogryController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Cateogry $cateogry)
+    public function update(Request $request, Activity $activity)
     {
         //
     }
@@ -58,7 +58,7 @@ class CateogryController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Cateogry $cateogry)
+    public function destroy(Activity $activity)
     {
         //
     }
