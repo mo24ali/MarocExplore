@@ -7,8 +7,8 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
-
-class AuthController extends Controller
+use Tymon\JWTAuth\Facades\JWTAuth;
+class AuthController extends Controller 
 {
 
     public function register(Request $request): JsonResponse
@@ -30,12 +30,12 @@ class AuthController extends Controller
         ]);
 
 
-        // $token = auth('api')->login($user);
+        $token = auth('api')->login($user);
 
         return response()->json([
             'message' => 'Utilisateur créé avec succès',
             'user' => $user,
-            // 'access_token' => $token,
+            'access_token' => $token,
             'token_type' => 'bearer',
         ], 201);
     }
@@ -44,25 +44,32 @@ class AuthController extends Controller
 
     public function login(Request $request){
         $credentials = $request->only('email','password');
-        if(!$token = auth('api')->attempt($credentials)){
-            return response()->json(['error' => 'not a valid credential']);
+        if (! $token = auth('api')->attempt($credentials)) {
+            return response()->json(['error' => 'Unauthorized'], 401);
         }
+
         return response()->json([
             'access_token' => $token,
             'token_type' => 'bearer',
-            'expire_at' => auth('api')->factory()->getTTL()*60
-            ]);
+            'expires_in' => auth('api')->factory()->getTTL() * 60,
+        ], 200);
     }
 
-    public function logout(Request $request): JsonResponse
+    public function logout(): JsonResponse
     {
-        $request->user()->currentAccessToken()->delete();
+        auth('api')->logout();
 
-        return response()->json(['message' => 'Déconnexion réussie'],201);
+        return response()->json(['message' => 'Déconnexion réussie'], 200);
     }
 
     public function profile(Request $request): JsonResponse
     {
-        return response()->json($request->user());
+        $user = $request->user();
+
+        if (! $user) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        return response()->json(['data' => $user], 200);
     }
 }

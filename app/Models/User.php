@@ -53,10 +53,6 @@ class User extends Authenticatable implements JWTSubject
        return $this->hasMany(Iterinary::class);
     }
 
-    public function wishlist(){
-        return $this->belongsToMany(Iterinary::class, 'user_wishlist');
-    }
-
     public function getJWTIdentifier()
     {
         return $this->getKey();

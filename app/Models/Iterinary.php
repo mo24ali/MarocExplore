@@ -26,10 +26,6 @@ class Iterinary extends Model
         return $this->hasMany(Destination::class);
     }
 
-    public function wishlistedBy(){
-        return $this->belongsToMany(User::class, 'user_wishlist');
-    }
-
     public function getCategoryAttribute($value)
     {
         if ($value) {

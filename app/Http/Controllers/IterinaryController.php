@@ -6,47 +6,26 @@ use App\Models\Iterinary;
 use App\Models\Destination;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class IterinaryController extends Controller
 {
     public function index(): JsonResponse
     {
-        $itineraries = Iterinary::with(['destinations', 'user'])
-            ->withCount('wishlistedBy')
-            ->get();
+        $itineraries = Iterinary::with(['destinations', 'user'])->get();
 
-        return response()->json($itineraries);
+        return response()->json(['data' => $itineraries], 200);
     }
 
     public function show(Iterinary $iterinary): JsonResponse
     {
-        $iterinary->load(['destinations', 'user', 'wishlistedBy']);
+        $iterinary->load(['destinations', 'user']);
 
-        return response()->json($iterinary);
-    }
-
-    public function create()
-    {
-        return view('iterinary.create');
+        return response()->json(['data' => $iterinary], 200);
     }
 
     public function store(Request $request): JsonResponse
     {
-        $normalizeArray = function ($input) {
-            if (is_string($input)) {
-                $values = array_map('trim', explode(',', $input));
-                return array_filter($values, fn($v) => $v !== '');
-            }
-
-            if (is_array($input)) {
-                return $input;
-            }
-
-            return [];
-        };
-
         $data = $request->validate([
             'title' => 'required|string|max:255',
             'category' => 'required|string|max:100',
@@ -59,6 +38,23 @@ class IterinaryController extends Controller
             'destinations.*.places' => 'nullable|string',
             'destinations.*.activities' => 'nullable|string',
         ]);
+
+        if (! $request->user()) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        $normalizeArray = function ($input) {
+            if (is_string($input)) {
+                $values = array_map('trim', explode(',', $input));
+                return array_filter($values, fn ($v) => $v !== '');
+            }
+
+            if (is_array($input)) {
+                return $input;
+            }
+
+            return [];
+        };
 
         $destinations = array_map(function ($destination) use ($normalizeArray) {
             return [
@@ -86,13 +82,13 @@ class IterinaryController extends Controller
             return $created;
         });
 
-        return response()->json($iterinary->load('destinations'), 201);
+        return response()->json(['data' => $iterinary->load('destinations')], 201);
     }
 
     public function update(Request $request, Iterinary $iterinary): JsonResponse
     {
-        if ($request->user()->id !== $iterinary->user_id) {
-            return response()->json(['message' => 'Accès refusé'], 403);
+        if (! $request->user() || $request->user()->id !== $iterinary->user_id) {
+            return response()->json(['message' => 'Forbidden'], 403);
         }
 
         $data = $request->validate([
@@ -104,33 +100,18 @@ class IterinaryController extends Controller
 
         $iterinary->update($data);
 
-        return response()->json($iterinary->fresh('destinations'));
+        return response()->json(['data' => $iterinary->fresh('destinations')], 200);
     }
 
     public function destroy(Request $request, Iterinary $iterinary): JsonResponse
     {
-        if ($request->user()->id !== $iterinary->user_id) {
-            return response()->json(['message' => 'Accès refusé'], 403);
+        if (! $request->user() || $request->user()->id !== $iterinary->user_id) {
+            return response()->json(['message' => 'Forbidden'], 403);
         }
 
         $iterinary->delete();
 
-        return response()->json(['message' => 'Itinéraire supprimé']);
-    }
-
-    public function addToWishlist(Request $request, Iterinary $iterinary): JsonResponse
-    {
-        $user = $request->user();
-        $user->wishlist()->syncWithoutDetaching([$iterinary->id]);
-
-        return response()->json(['message' => 'Itinéraire ajouté à votre liste à visiter']);
-    }
-
-    public function removeFromWishlist(Request $request, Iterinary $iterinary): JsonResponse
-    {
-        $request->user()->wishlist()->detach($iterinary->id);
-
-        return response()->json(['message' => 'Itinéraire retiré de votre liste à visiter']);
+        return response()->json(['message' => 'Itinéraire supprimé'], 200);
     }
 
     public function search(Request $request): JsonResponse
@@ -153,24 +134,23 @@ class IterinaryController extends Controller
             $builder->where('duration', $duration);
         }
 
-        return response()->json($builder->get());
+        return response()->json(['data' => $builder->get()], 200);
     }
 
     public function popular(): JsonResponse
     {
         $itineraries = Iterinary::with('destinations')
-            ->withCount('wishlistedBy')
-            ->orderByDesc('wishlisted_by_count')
+            ->orderByDesc('created_at')
             ->take(10)
             ->get();
 
-        return response()->json($itineraries);
+        return response()->json(['data' => $itineraries], 200);
     }
 
     public function addDestination(Request $request, Iterinary $iterinary): JsonResponse
     {
-        if ($request->user()->id !== $iterinary->user_id) {
-            return response()->json(['message' => 'Accès refusé'], 403);
+        if (! $request->user() || $request->user()->id !== $iterinary->user_id) {
+            return response()->json(['message' => 'Forbidden'], 403);
         }
 
         $data = $request->validate([
@@ -183,13 +163,13 @@ class IterinaryController extends Controller
 
         $destination = $iterinary->destinations()->create($data);
 
-        return response()->json($destination, 201);
+        return response()->json(['data' => $destination], 201);
     }
 
     public function updateDestination(Request $request, Iterinary $iterinary, Destination $destination): JsonResponse
     {
-        if ($request->user()->id !== $iterinary->user_id || $destination->iterinary_id !== $iterinary->id) {
-            return response()->json(['message' => 'Accès refusé'], 403);
+        if (! $request->user() || $request->user()->id !== $iterinary->user_id || $destination->iterinary_id !== $iterinary->id) {
+            return response()->json(['message' => 'Forbidden'], 403);
         }
 
         $data = $request->validate([
@@ -202,13 +182,13 @@ class IterinaryController extends Controller
 
         $destination->update($data);
 
-        return response()->json($destination);
+        return response()->json(['data' => $destination], 200);
     }
 
     public function removeDestination(Request $request, Iterinary $iterinary, Destination $destination): JsonResponse
     {
-        if ($request->user()->id !== $iterinary->user_id || $destination->iterinary_id !== $iterinary->id) {
-            return response()->json(['message' => 'Accès refusé'], 403);
+        if (! $request->user() || $request->user()->id !== $iterinary->user_id || $destination->iterinary_id !== $iterinary->id) {
+            return response()->json(['message' => 'Forbidden'], 403);
         }
 
         if ($iterinary->destinations()->count() <= 2) {
@@ -217,7 +197,7 @@ class IterinaryController extends Controller
 
         $destination->delete();
 
-        return response()->json(['message' => 'Destination supprimée']);
+        return response()->json(['message' => 'Destination supprimée'], 200);
     }
 
     public function stats(): JsonResponse
@@ -237,7 +217,7 @@ class IterinaryController extends Controller
         return response()->json([
             'itineraries_by_category' => $byCategory,
             'users_registered_per_month' => $usersMonthly,
-        ]);
+        ], 200);
     }
 }
 
