@@ -195,12 +195,23 @@ class IterinaryController extends Controller
             ->groupBy('category')
             ->get();
 
-        $usersMonthly = DB::table('users')
-            ->selectRaw("DATE_FORMAT(created_at,'%Y-%m') as month")
-            ->selectRaw('count(*) as total')
-            ->groupBy('month')
-            ->orderBy('month')
-            ->get();
+        $driver = DB::getDriverName();
+
+        if ($driver === 'pgsql') {
+            $usersMonthly = DB::table('users')
+                ->selectRaw("to_char(created_at, 'YYYY-MM') as month")
+                ->selectRaw('count(*) as total')
+                ->groupBy('month')
+                ->orderBy('month')
+                ->get();
+        } else {
+            $usersMonthly = DB::table('users')
+                ->selectRaw("DATE_FORMAT(created_at,'%Y-%m') as month")
+                ->selectRaw('count(*) as total')
+                ->groupBy('month')
+                ->orderBy('month')
+                ->get();
+        }
 
         return response()->json([
             'itineraries_by_category' => $byCategory,

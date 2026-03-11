@@ -13,7 +13,7 @@ Route::prefix('v1')->group(function () {
     Route::get('/itineraries', [IterinaryController::class, 'index']);
     Route::get('/itineraries/popular', [IterinaryController::class, 'popular']);
     Route::get('/itineraries/search', [IterinaryController::class, 'search']);
-    Route::get('/itineraries/stats', [IterinaryController::class, 'stats']);
+    Route::match(['get', 'post'], '/itineraries/stats', [IterinaryController::class, 'stats']);
     Route::get('/itineraries/{iterinary}', [IterinaryController::class, 'show']);
 
     Route::middleware('auth:api')->group(function () {
