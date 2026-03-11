@@ -16,8 +16,8 @@ Route::prefix('v1')->group(function () {
     Route::get('/itineraries/stats', [IterinaryController::class, 'stats']);
     Route::get('/itineraries/{iterinary}', [IterinaryController::class, 'show']);
 
-    Route::middleware('auth:sanctum')->group(function () {
-        Route::post('/logout', [AuthController::class, 'logout']);
+
+    Route::post('/logout', [AuthController::class, 'logout']);
         Route::get('/profile', [AuthController::class, 'profile']);
 
         Route::post('/itineraries', [IterinaryController::class, 'store']);
@@ -29,7 +29,9 @@ Route::prefix('v1')->group(function () {
         Route::post('/itineraries/{iterinary}/destinations', [IterinaryController::class, 'addDestination']);
         Route::put('/itineraries/{iterinary}/destinations/{destination}', [IterinaryController::class, 'updateDestination']);
         Route::delete('/itineraries/{iterinary}/destinations/{destination}', [IterinaryController::class, 'removeDestination']);
-        
+
+
+    Route::middleware('auth:sanctum')->group(function () {
     });
 
 });

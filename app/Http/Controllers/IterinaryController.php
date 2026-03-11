@@ -34,10 +34,8 @@ class IterinaryController extends Controller
 
     public function store(Request $request): JsonResponse
     {
-        // helper : normalize list fields
         $normalizeArray = function ($input) {
             if (is_string($input)) {
-                // allow comma-separated values
                 $values = array_map('trim', explode(',', $input));
                 return array_filter($values, fn($v) => $v !== '');
             }

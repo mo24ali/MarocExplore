@@ -10,12 +10,17 @@ use Illuminate\Validation\Rules\Password;
 
 class AuthController extends Controller
 {
+
     public function register(Request $request): JsonResponse
     {
         $data = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
-            'password' => ['required', 'confirmed', Password::min(8)->mixedCase()->numbers()->symbols()],
+            'password' => [
+                'required', 
+                'confirmed', 
+                Password::min(8)->mixedCase()->numbers()->symbols()
+            ],
         ]);
 
         $user = User::create([
@@ -24,34 +29,36 @@ class AuthController extends Controller
             'password' => Hash::make($data['password']),
         ]);
 
-        $token = $user->createToken('maroc-explore-token')->plainTextToken;
 
-        return response()->json(['user' => $user, 'token' => $token], 201);
+        // $token = auth('api')->login($user);
+
+        return response()->json([
+            'message' => 'Utilisateur créé avec succès',
+            'user' => $user,
+            // 'access_token' => $token,
+            'token_type' => 'bearer',
+        ], 201);
     }
 
-    public function login(Request $request): JsonResponse
-    {
-        $credentials = $request->validate([
-            'email' => 'required|email',
-            'password' => 'required|string',
-        ]);
 
-        $user = User::where('email', $credentials['email'])->first();
 
-        if (! $user || ! Hash::check($credentials['password'], $user->password)) {
-            return response()->json(['message' => 'Identifiants invalides'], 401);
+    public function login(Request $request){
+        $credentials = $request->only('email','password');
+        if(!$token = auth('api')->attempt($credentials)){
+            return response()->json(['error' => 'not a valid credential']);
         }
-
-        $token = $user->createToken('maroc-explore-token')->plainTextToken;
-
-        return response()->json(['user' => $user, 'token' => $token], 200);
+        return response()->json([
+            'access_token' => $token,
+            'token_type' => 'bearer',
+            'expire_at' => auth('api')->factory()->getTTL()*60
+            ]);
     }
 
     public function logout(Request $request): JsonResponse
     {
         $request->user()->currentAccessToken()->delete();
 
-        return response()->json(['message' => 'Déconnexion réussie']);
+        return response()->json(['message' => 'Déconnexion réussie'],201);
     }
 
     public function profile(Request $request): JsonResponse
