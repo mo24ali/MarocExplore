@@ -31,38 +31,22 @@ class IterinaryController extends Controller
             'category' => 'required|string|max:100',
             'duration' => 'required|string|max:100',
             'image' => 'nullable|url',
-            'destinations' => 'required|array|min:2',
+            'destination' => 'required|string|max:255',
+            'destinations' => 'required|array|min:1',
             'destinations.*.name' => 'required|string|max:255',
             'destinations.*.lieu_logement' => 'required|string|max:255',
-            'destinations.*.image' => 'nullable|url',
-            'destinations.*.places' => 'nullable|string',
-            'destinations.*.activities' => 'nullable|string',
+            'destinations.*.image' => 'required|url',
         ]);
 
         if (! $request->user()) {
             return response()->json(['message' => 'Unauthorized'], 401);
         }
 
-        $normalizeArray = function ($input) {
-            if (is_string($input)) {
-                $values = array_map('trim', explode(',', $input));
-                return array_filter($values, fn ($v) => $v !== '');
-            }
-
-            if (is_array($input)) {
-                return $input;
-            }
-
-            return [];
-        };
-
-        $destinations = array_map(function ($destination) use ($normalizeArray) {
+        $destinations = array_map(function ($destination) {
             return [
                 'name' => $destination['name'],
                 'lieu_logement' => $destination['lieu_logement'],
-                'image' => $destination['image'] ?? null,
-                'places' => $normalizeArray($destination['places'] ?? []),
-                'activities' => $normalizeArray($destination['activities'] ?? []),
+                'image' => $destination['image'],
             ];
         }, $data['destinations']);
 
@@ -72,11 +56,13 @@ class IterinaryController extends Controller
                 'category' => $data['category'],
                 'duration' => $data['duration'],
                 'image' => $data['image'] ?? null,
+                'destination' => $data['destination'],
                 'user_id' => $request->user()->id,
             ]);
 
             foreach ($destinations as $destinationData) {
-                $created->destinations()->create($destinationData);
+                $destination = Destination::create($destinationData);
+                $created->destinations()->attach($destination->id);
             }
 
             return $created;
@@ -161,14 +147,15 @@ class IterinaryController extends Controller
             'activities' => 'nullable|array',
         ]);
 
-        $destination = $iterinary->destinations()->create($data);
+        $destination = Destination::create($data);
+        $iterinary->destinations()->attach($destination->id);
 
         return response()->json(['data' => $destination], 201);
     }
 
     public function updateDestination(Request $request, Iterinary $iterinary, Destination $destination): JsonResponse
     {
-        if (! $request->user() || $request->user()->id !== $iterinary->user_id || $destination->iterinary_id !== $iterinary->id) {
+        if (! $request->user() || $request->user()->id !== $iterinary->user_id || ! $iterinary->destinations()->where('destinations.id', $destination->id)->exists()) {
             return response()->json(['message' => 'Forbidden'], 403);
         }
 
@@ -187,7 +174,7 @@ class IterinaryController extends Controller
 
     public function removeDestination(Request $request, Iterinary $iterinary, Destination $destination): JsonResponse
     {
-        if (! $request->user() || $request->user()->id !== $iterinary->user_id || $destination->iterinary_id !== $iterinary->id) {
+        if (! $request->user() || $request->user()->id !== $iterinary->user_id || ! $iterinary->destinations()->where('destinations.id', $destination->id)->exists()) {
             return response()->json(['message' => 'Forbidden'], 403);
         }
 
@@ -195,6 +182,7 @@ class IterinaryController extends Controller
             return response()->json(['message' => 'Un itinéraire doit contenir au moins deux destinations.'], 400);
         }
 
+        $iterinary->destinations()->detach($destination->id);
         $destination->delete();
 
         return response()->json(['message' => 'Destination supprimée'], 200);

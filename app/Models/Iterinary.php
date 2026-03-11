@@ -23,7 +23,7 @@ class Iterinary extends Model
     }
 
     public function destinations(){
-        return $this->hasMany(Destination::class);
+        return $this->belongsToMany(Destination::class, 'destination_iterinaire', 'itinéraire_id', 'destination_id')->withTimestamps();
     }
 
     public function getCategoryAttribute($value)
@@ -32,13 +32,13 @@ class Iterinary extends Model
             return $value;
         }
 
-        return $this->attributes['catégorie'] ?? null;
+        return $this->attributes['category'] ?? null;
     }
 
     public function setCategoryAttribute($value)
     {
         // $this->attributes['category'] = $value;
-        $this->attributes['catégorie'] = $value;
+        $this->attributes['category'] = $value;
     }
 
     public function getDurationAttribute($value)
@@ -47,12 +47,12 @@ class Iterinary extends Model
             return $value;
         }
 
-        return $this->attributes['duree'] ?? null;
+        return $this->attributes['duration'] ?? null;
     }
 
     public function setDurationAttribute($value)
     {
         // $this->attributes['duration'] = $value;
-        $this->attributes['duree'] = $value;
+        $this->attributes['duration'] = $value;
     }
 }

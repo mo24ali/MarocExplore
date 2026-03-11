@@ -28,8 +28,8 @@ class Destination extends Model
         return $this->hasMany(Activity::class);
     }
 
-    public function iterinary(){
-        return $this->belongsTo(Iterinary::class);
+    public function iterinaries(){
+        return $this->belongsToMany(Iterinary::class, 'destination_iterinaire', 'destination_id', 'itinéraire_id')->withTimestamps();
     }
 
     public function images(){
