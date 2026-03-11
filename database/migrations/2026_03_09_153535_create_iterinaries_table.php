@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('iterinaries', function (Blueprint $table) {
             $table->id();
             $table->string('title');
-            $table->string('catégorie');
-            $table->string('duree');
+            $table->string('category');
+            $table->string('duration');
             $table->string('image');
             $table->foreignId('user_id')->constrained('users');
             $table->timestamps();

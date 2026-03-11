@@ -1,3 +1,24 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+    --primary: #4f46e5;
+    --secondary: #0f172a;
+}
+
+body {
+    background: linear-gradient(180deg, rgba(239, 246, 255, 1) 0%, rgba(248, 250, 252, 1) 30%, rgba(255, 255, 255, 1) 100%);
+}
+
+button,
+input,
+select,
+textarea {
+    font-family: 'Figtree', sans-serif;
+}
+
+header {
+    border-bottom: 1px solid rgba(99, 102, 241, 0.15);
+}
+
