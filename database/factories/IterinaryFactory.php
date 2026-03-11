@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -17,7 +18,11 @@ class IterinaryFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'title' => $this->faker->sentence(3),
+            'category' => $this->faker->randomElement(['plage', 'montagne', 'rivière', 'monument']),
+            'duration' => $this->faker->randomElement(['1 jour', '3 jours', '7 jours']),
+            'image' => $this->faker->imageUrl(640, 480, 'travel'),
+            'user_id' => User::factory(),
         ];
     }
 }
