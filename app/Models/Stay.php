@@ -5,21 +5,16 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Image extends Model
+class Stay extends Model
 {
+    /** @use HasFactory<\Database\Factories\StayFactory> */
     use HasFactory;
 
     protected $fillable = [
-        'image_link',
-        'file_size',
-        'file_type',
         'destination_id',
-        'context_type',
-        'context_id',
-        'alt_text',
-        'storage_disk',
-        'width',
-        'height',
+        'name',
+        'address',
+        'description',
     ];
 
     public function destination()

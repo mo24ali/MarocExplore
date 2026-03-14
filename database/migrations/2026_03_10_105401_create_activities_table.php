@@ -14,8 +14,14 @@ return new class extends Migration
         Schema::create('activities', function (Blueprint $table) {
             $table->id();
             $table->string('nom');
+            $table->text('description')->nullable();
             $table->foreignId('destination_id')->constrained('destinations')->cascadeOnDelete();
-            $table->timestamps();   
+            $table->time('start_time')->nullable();
+            $table->time('end_time')->nullable();
+            $table->decimal('cost', 10, 2)->nullable();
+            $table->string('currency', 5)->nullable()->default('MAD');
+            $table->json('details')->nullable();
+            $table->timestamps();
         });
     }
 
